@@ -14,13 +14,13 @@ find_package(gz_plugin_vendor REQUIRED)
 find_package(gz-sim8 REQUIRED)
 find_package(gz-plugin2 REQUIRED)
 
-add_library(MapCreator SHARED src/MapCreator.cpp)
-set_property(TARGET MapCreator PROPERTY CXX_STANDARD 17)
-target_link_libraries(MapCreator
+add_library(MapParser SHARED src/map_parser.cpp)
+set_property(TARGET MapParser PROPERTY CXX_STANDARD 17)
+target_link_libraries(MapParser
   PRIVATE gz-plugin2::gz-plugin2
   PRIVATE gz-sim8::gz-sim8)
 
-install(TARGETS MapCreator
+install(TARGETS MapParser
   LIBRARY DESTINATION lib)
 
 

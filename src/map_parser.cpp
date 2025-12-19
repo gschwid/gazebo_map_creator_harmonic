@@ -1,13 +1,13 @@
-#include "MapCreator.hpp"
+#include "map_parser.hpp"
 
 GZ_ADD_PLUGIN(
-    map_creator::MapCreator,
+    map_parser::MapParser,
     gz::sim::System,
-    map_creator::MapCreator::ISystemPostUpdate);
+    map_parser::MapParser::ISystemPostUpdate);
 
-using namespace map_creator;
+using namespace map_parser;
 
-void MapCreator::PostUpdate(const gz::sim::UpdateInfo &_info,
+void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &/*_ecm*/)
 {
     std::string msg = "Hello, world! Simulation is ";

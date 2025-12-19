@@ -5,7 +5,7 @@
       System plugins can be loaded from <plugin> tags attached to entities like
       the world, models, visuals, etc.
     -->
-    <plugin filename="/workspace/install/gazebo_map_creator_harmonic/lib/libMapCreator.so" name="map_creator::MapCreator">
+    <plugin filename="/workspace/install/gazebo_map_creator_harmonic/lib/libMapParser.so" name="map_parser::MapParser">
     </plugin>
   </world>
 </sdf>

@@ -3,9 +3,9 @@
 #include <string>
 #include <gz/common/Console.hh>
 
-namespace map_creator {
+namespace map_parser {
 
-    class MapCreator:
+    class MapParser:
         public gz::sim::System,
         public gz::sim::ISystemPostUpdate
         {
