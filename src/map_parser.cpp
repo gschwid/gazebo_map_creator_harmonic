@@ -8,14 +8,22 @@ GZ_ADD_PLUGIN(
 using namespace map_parser;
 
 void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &/*_ecm*/)
+    const gz::sim::EntityComponentManager & _ecem)
 {
-    std::string msg = "Hello, world! Simulation is ";
-    if (!_info.paused)
-    msg += "not ";
-    msg += "paused.";
+    _ecem.Each<gz::sim::components::Model, gz::sim::components::Name>(
+            [&](const gz::sim::Entity & _entity, const gz::sim::components::Model * _model, const gz::sim::components::Name *_name) -> bool {
+                gzmsg << "Found Model Entity [" << _entity << "] with Name: " 
+                  << _name->Data() << std::endl;
+                  return true;
+            }
+            );
 
-    // Messages printed with gzmsg only show when running with verbosity 3 or
-    // higher (i.e. gz sim -v 3)
-    gzmsg << msg << std::endl;
+    // std::string msg = "Hello, world! Simulation is ";
+    // if (!_info.paused)
+    // msg += "not ";
+    // msg += "paused.";
+
+    // // Messages printed with gzmsg only show when running with verbosity 3 or
+    // // higher (i.e. gz sim -v 3)
+    // gzmsg << msg << std::endl;
 }
