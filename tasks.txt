@@ -1,0 +1,4 @@
+First steps in the project
+
+1) Create an occupancy grid of gazeebo world
+- Scan all the envoirnments in the map 

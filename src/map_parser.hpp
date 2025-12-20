@@ -4,6 +4,14 @@
 #include <gz/common/Console.hh>
 #include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Geometry.hh>
+#include <gz/sim/components/Collision.hh>
+#include <sdf/Box.hh>
+#include <sdf/Sphere.hh>
+#include <sdf/Cylinder.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Plane.hh>
 
 namespace map_parser {
 

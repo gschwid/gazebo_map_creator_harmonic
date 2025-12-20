@@ -10,11 +10,15 @@ using namespace map_parser;
 void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager & _ecem)
 {
-    _ecem.Each<gz::sim::components::Model, gz::sim::components::Name>(
-            [&](const gz::sim::Entity & _entity, const gz::sim::components::Model * _model, const gz::sim::components::Name *_name) -> bool {
+    _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry>(
+            [&](const gz::sim::Entity & _entity, const gz::sim::components::Collision * _model, const gz::sim::components::Geometry *_geometry) -> bool {
+
+                if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
                 gzmsg << "Found Model Entity [" << _entity << "] with Name: " 
-                  << _name->Data() << std::endl;
+                << " and Geometry: " << _geometry->Data().PlaneShape()->Size().X() << std::endl;
                   return true;
+                }
+                return false;
             }
             );
 
