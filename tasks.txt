@@ -1,4 +1,9 @@
 First steps in the project
 
 1) Create an occupancy grid of gazeebo world
-- Scan all the envoirnments in the map 
+- Scan all collisions in the world
+    - This method might not work depending on how collisions are defined in the file. 
+- Do math to figure out how to create occupancy grid from this
+- Likely store all the occupancy values in an array, then take this array and publish it in a ROS2 message. 
+
+2) Go from occupancy to 3d.
