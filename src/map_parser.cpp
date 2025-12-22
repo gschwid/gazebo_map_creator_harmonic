@@ -74,8 +74,7 @@ void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
                 }
 
                 gzmsg << "Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-
-
+                
                 return true;
             }
             );
