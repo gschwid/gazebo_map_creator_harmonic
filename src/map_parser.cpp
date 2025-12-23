@@ -24,19 +24,15 @@ void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
     // msg += "not ";
     // msg += "paused.";
 
-    // // Messages printed with gzmsg only show when running with verbosity 3 or
-    // // higher (i.e. gz sim -v 3)
+    // Messages printed with gzmsg only show when running with verbosity 3 or
+    // higher (i.e. gz sim -v 3)
     // gzmsg << msg << std::endl;
 }
 
-void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
-    int smallest_x;
-    int largest_x;
-    int smallest_y;
-    int largest_y;
+void MapParser::getObstacles(const gz::sim::EntityComponentManager & _ecem) {
 
     _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry>(
-            [&smallest_x, &largest_x, &smallest_y, &largest_y, &_ecem](const gz::sim::Entity & _entity, const gz::sim::components::Collision * _model, const gz::sim::components::Geometry *_geom) -> bool {
+            [&_ecem](const gz::sim::Entity & _entity, const gz::sim::components::Collision * _model, const gz::sim::components::Geometry *_geom) -> bool {
 
                 // Get world pose of each collision object
                 gz::math::Pose3d worldPose = gz::sim::worldPose( _entity, _ecem);
@@ -79,3 +75,20 @@ void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
             }
             );
     }
+
+void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
+
+    // Setup references to be used as biggest and smallest
+    double max = std::numeric_limits<double>::max();
+    double min = std::numeric_limits<double>::lowest();
+    gz::math::Vector3d smallest(max, max, max);
+    gz::math::Vector3d biggest(min, min, min);
+
+    // Loop through all AABB componenets and find the min and max values
+    _ecem.Each<gz::sim::components::AxisAlignedBox>(
+        [&smallest, &biggest, &_ecem](const gz::sim::Entity & _entity, const gz::sim::components::AxisAlignedBox * _aabb) {
+            
+            return true;
+        }
+    );
+}
