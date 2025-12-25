@@ -26,13 +26,15 @@ namespace map_parser {
 
     class MapParser:
         public gz::sim::System,
-        public gz::sim::ISystemPostUpdate
+        public gz::sim::ISystemPostUpdate,
+        public gz::sim::ISystemPreUpdate
         {
         public:
             void PostUpdate(const gz::sim::UpdateInfo &_info,
                 const gz::sim::EntityComponentManager &_ecm) override;
-
-            void getDimensions(const gz::sim::EntityComponentManager & _ecem);
+            void PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
+            void getDimensions(gz::sim::EntityComponentManager & _ecem);
             void getObstacles(const gz::sim::EntityComponentManager & _ecem);
         
         private:

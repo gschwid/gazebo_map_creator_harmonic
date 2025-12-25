@@ -3,23 +3,34 @@
 GZ_ADD_PLUGIN(
     map_parser::MapParser,
     gz::sim::System,
-    map_parser::MapParser::ISystemPostUpdate);
+    map_parser::MapParser::ISystemPostUpdate,
+    map_parser::MapParser::ISystemPreUpdate);
 
 using namespace map_parser;
 
-void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager & _ecem)
-{   
-    if (true) {
+void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
+                          gz::sim::EntityComponentManager &_ecem)
+{
+    if (true)
+    {
         this->getDimensions(_ecem);
     }
+}
 
-            //     if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
-            //     gzmsg << "Found Model Entity [" << _entity << "] with Name: " 
-            //     << " and Geometry: " << _geometry->Data().PlaneShape()->Size().X() << std::endl;
-            //       return true;
-            //     }
-            //     return false;
+void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
+                           const gz::sim::EntityComponentManager &_ecem)
+{
+    // if (true)
+    // {
+    //     this->getDimensions(_ecem);
+    // }
+
+    //     if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
+    //     gzmsg << "Found Model Entity [" << _entity << "] with Name: "
+    //     << " and Geometry: " << _geometry->Data().PlaneShape()->Size().X() << std::endl;
+    //       return true;
+    //     }
+    //     return false;
 
     // std::string msg = "Hello, world! Simulation is ";
     // if (!_info.paused)
@@ -31,54 +42,60 @@ void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
     // gzmsg << msg << std::endl;
 }
 
-void MapParser::getObstacles(const gz::sim::EntityComponentManager & _ecem) {
+void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
+{
 
     _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry>(
-            [&_ecem](const gz::sim::Entity & _entity, const gz::sim::components::Collision * _model, const gz::sim::components::Geometry *_geom) -> bool {
+        [&_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Collision *_model, const gz::sim::components::Geometry *_geom) -> bool
+        {
+            // Get world pose of each collision object
+            gz::math::Pose3d worldPose = gz::sim::worldPose(_entity, _ecem);
+            gzmsg << "X: " << worldPose.Pos().X() << " Y: " << worldPose.Pos().Y() << " Z: " << worldPose.Pos().Z() << std::endl;
 
-                // Get world pose of each collision object
-                gz::math::Pose3d worldPose = gz::sim::worldPose( _entity, _ecem);
-                gzmsg << "X: " << worldPose.Pos().X() << " Y: " << worldPose.Pos().Y() << " Z: " << worldPose.Pos().Z() << std::endl;
+            // Get the size depending on what type of object we are looking at
+            gz::math::Vector3d scale;
 
-                // Get the size depending on what type of object we are looking at
-                gz::math::Vector3d scale;
-
-                if (_geom->Data().Type() == sdf::GeometryType::BOX) {
-                    scale = _geom->Data().BoxShape()->Size();
-                }
-
-                else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER) {
-                    scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
-                    scale.Y() = scale.X();
-                    scale.Z() = _geom->Data().CylinderShape()->Length();
-                }
-
-                else if (_geom->Data().Type() == sdf::GeometryType::SPHERE) {
-                    scale.X() = _geom->Data().SphereShape()->Radius() * 2;
-                    scale.Y() = scale.X();
-                    scale.Z() = scale.X();
-                }
-
-                else if (_geom->Data().Type() == sdf::GeometryType::PLANE) {
-                    scale.X() = _geom->Data().PlaneShape()->Size().X();
-                    scale.Y() = _geom->Data().PlaneShape()->Size().Y();
-                    scale.Z() = 0;
-                }
-
-                else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER) {
-                    scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
-                    scale.Y() =  scale.X();
-                    scale.Z() = scale.X();
-                }
-
-                gzmsg << "Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-                
-                return true;
+            if (_geom->Data().Type() == sdf::GeometryType::BOX)
+            {
+                scale = _geom->Data().BoxShape()->Size();
             }
-            );
-    }
 
-void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
+            else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
+            {
+                scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
+                scale.Y() = scale.X();
+                scale.Z() = _geom->Data().CylinderShape()->Length();
+            }
+
+            else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
+            {
+                scale.X() = _geom->Data().SphereShape()->Radius() * 2;
+                scale.Y() = scale.X();
+                scale.Z() = scale.X();
+            }
+
+            else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
+            {
+                scale.X() = _geom->Data().PlaneShape()->Size().X();
+                scale.Y() = _geom->Data().PlaneShape()->Size().Y();
+                scale.Z() = 0;
+            }
+
+            else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
+            {
+                scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
+                scale.Y() = scale.X();
+                scale.Z() = scale.X();
+            }
+
+            gzmsg << "Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
+
+            return true;
+        });
+}
+
+void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
+{
 
     // Setup references to be used as biggest and smallest
     double max = std::numeric_limits<double>::max();
@@ -87,41 +104,55 @@ void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
     gz::math::Vector3d biggest(min, min, min);
 
     // Loop through all AABB componenets and find the min and max values
-    _ecem.Each<gz::sim::components::AxisAlignedBox>(
-        [&smallest, &biggest, &_ecem](const gz::sim::Entity & _entity, const gz::sim::components::AxisAlignedBox * _aabb) {
-            std::cout << "We made it chud" << std::endl;
-            // Update max and min based on box values
-            gz::math::AxisAlignedBox box = _aabb->Data();
-            gz::math::Vector3d cur_min = box.Min();
-            gz::math::Vector3d cur_max = box.Max();
+    _ecem.Each<gz::sim::components::Model>(
+        [&smallest, &biggest, &_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Model *model)
+        {
+            // Check if AABB box exists for this entity
+            auto found_box = _ecem.Component<gz::sim::components::AxisAlignedBox>(_entity);
+            if (found_box)
+            {
+                // Update values if the bounding box exists.
+                gz::math::AxisAlignedBox box = found_box->Data();
+                gz::math::Vector3d cur_min = box.Min();
+                gz::math::Vector3d cur_max = box.Max();
+                std::cout << "cur_x_min " << cur_min.X() << " cur_y_min " << cur_min.Y() << std::endl;
+                std::cout << "cur_x_max " << cur_max.X() << " cur_y_max " << cur_max.Y() << std::endl;
 
-            // Probably a better way to do this comparison...
-            if (smallest.X() > cur_min.X()) {
-                smallest.X() = cur_min.X();
-            }
-            if (smallest.Y() > cur_min.Y()) {
-                smallest.Y() = cur_min.Y();
-            }
-            if (smallest.Z() > cur_min.Z()) {
-                smallest.Z() = cur_min.Z();
-            }
+                // Probably a better way to do this comparison...
+                if (smallest.X() > cur_min.X())
+                {
+                    smallest.X() = cur_min.X();
+                }
+                if (smallest.Y() > cur_min.Y())
+                {
+                    smallest.Y() = cur_min.Y();
+                }
+                if (smallest.Z() > cur_min.Z())
+                {
+                    smallest.Z() = cur_min.Z();
+                }
 
-            if (biggest.X() < cur_max.X()) {
-                biggest.X() = cur_max.X();
+                if (biggest.X() < cur_max.X())
+                {
+                    biggest.X() = cur_max.X();
+                }
+                if (biggest.Y() < cur_max.Y())
+                {
+                    biggest.Y() = cur_max.Y();
+                }
+                if (biggest.Z() < cur_max.Z())
+                {
+                    biggest.Z() = cur_max.Z();
+                }
+                return true;
             }
-            if (biggest.Y() < cur_max.Y()) {
-                biggest.Y() = cur_max.Y();
-            }
-            if (biggest.Z() < cur_max.Z()) {
-                biggest.Z() = cur_max.Z();
-            }
-            return true;
-        }
-    );
+            std::cout << "No Bounding box found for model... Creating one" << std::endl;
+            _ecem.CreateComponent(_entity, gz::sim::components::AxisAlignedBox());
+            return false;
+        });
 
     double x_size = ceil(biggest.X() - smallest.X());
     double y_size = ceil(biggest.Y() - smallest.Y());
     std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
     this->size_init = true;
-
 }
