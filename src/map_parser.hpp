@@ -20,6 +20,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/AxisAlignedBox.hh>
 #include <limits>
+#include <math.h>
 
 namespace map_parser {
 
@@ -33,5 +34,9 @@ namespace map_parser {
 
             void getDimensions(const gz::sim::EntityComponentManager & _ecem);
             void getObstacles(const gz::sim::EntityComponentManager & _ecem);
+        
+        private:
+            bool size_init = false;
+            int *occupancy_array;
         };
 }   

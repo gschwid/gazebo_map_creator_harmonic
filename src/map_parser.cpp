@@ -9,8 +9,10 @@ using namespace map_parser;
 
 void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager & _ecem)
-{
-    this->getDimensions(_ecem);
+{   
+    if (true) {
+        this->getDimensions(_ecem);
+    }
 
             //     if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
             //     gzmsg << "Found Model Entity [" << _entity << "] with Name: " 
@@ -87,8 +89,39 @@ void MapParser::getDimensions(const gz::sim::EntityComponentManager & _ecem) {
     // Loop through all AABB componenets and find the min and max values
     _ecem.Each<gz::sim::components::AxisAlignedBox>(
         [&smallest, &biggest, &_ecem](const gz::sim::Entity & _entity, const gz::sim::components::AxisAlignedBox * _aabb) {
-            
+            std::cout << "We made it chud" << std::endl;
+            // Update max and min based on box values
+            gz::math::AxisAlignedBox box = _aabb->Data();
+            gz::math::Vector3d cur_min = box.Min();
+            gz::math::Vector3d cur_max = box.Max();
+
+            // Probably a better way to do this comparison...
+            if (smallest.X() > cur_min.X()) {
+                smallest.X() = cur_min.X();
+            }
+            if (smallest.Y() > cur_min.Y()) {
+                smallest.Y() = cur_min.Y();
+            }
+            if (smallest.Z() > cur_min.Z()) {
+                smallest.Z() = cur_min.Z();
+            }
+
+            if (biggest.X() < cur_max.X()) {
+                biggest.X() = cur_max.X();
+            }
+            if (biggest.Y() < cur_max.Y()) {
+                biggest.Y() = cur_max.Y();
+            }
+            if (biggest.Z() < cur_max.Z()) {
+                biggest.Z() = cur_max.Z();
+            }
             return true;
         }
     );
+
+    double x_size = ceil(biggest.X() - smallest.X());
+    double y_size = ceil(biggest.Y() - smallest.Y());
+    std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
+    this->size_init = true;
+
 }
