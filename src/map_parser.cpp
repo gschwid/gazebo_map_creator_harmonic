@@ -11,7 +11,7 @@ using namespace map_parser;
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
                           gz::sim::EntityComponentManager &_ecem)
 {
-    if (true)
+    if (!this->size_init)
     {
         this->getDimensions(_ecem);
     }
@@ -102,10 +102,11 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
     double min = std::numeric_limits<double>::lowest();
     gz::math::Vector3d smallest(max, max, max);
     gz::math::Vector3d biggest(min, min, min);
+    bool boxes_exist = true;
 
     // Loop through all AABB componenets and find the min and max values
     _ecem.Each<gz::sim::components::Model>(
-        [&smallest, &biggest, &_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Model *model)
+        [&smallest, &biggest, &_ecem, &boxes_exist](const gz::sim::Entity &_entity, const gz::sim::components::Model *model)
         {
             // Check if AABB box exists for this entity
             auto found_box = _ecem.Component<gz::sim::components::AxisAlignedBox>(_entity);
@@ -146,13 +147,18 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
                 }
                 return true;
             }
-            std::cout << "No Bounding box found for model... Creating one" << std::endl;
-            _ecem.CreateComponent(_entity, gz::sim::components::AxisAlignedBox());
-            return false;
+            else
+            {
+                std::cout << "No Bounding box found for model... Creating one" << std::endl;
+                _ecem.CreateComponent(_entity, gz::sim::components::AxisAlignedBox());
+                boxes_exist = false;
+                return true;
+            }
         });
-
-    double x_size = ceil(biggest.X() - smallest.X());
-    double y_size = ceil(biggest.Y() - smallest.Y());
-    std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
-    this->size_init = true;
+    if (boxes_exist) {
+        this->size_init = true;
+        double x_size = ceil(biggest.X() - smallest.X());
+        double y_size = ceil(biggest.Y() - smallest.Y());
+        std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
+    }
 }
