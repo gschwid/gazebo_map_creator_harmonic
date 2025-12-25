@@ -14,11 +14,17 @@ find_package(gz_plugin_vendor REQUIRED)
 find_package(gz-sim8 REQUIRED)
 find_package(gz-plugin2 REQUIRED)
 
+find_package(gz-transport13)
+find_package(gz-msgs10)
+
 add_library(MapParser SHARED src/map_parser.cpp)
 set_property(TARGET MapParser PROPERTY CXX_STANDARD 17)
 target_link_libraries(MapParser
   PRIVATE gz-plugin2::gz-plugin2
-  PRIVATE gz-sim8::gz-sim8)
+  PRIVATE gz-sim8::gz-sim8
+  PRIVATE gz-transport13::core
+  PRIVATE gz-msgs10::core
+  )
 
 install(TARGETS MapParser
   LIBRARY DESTINATION lib)

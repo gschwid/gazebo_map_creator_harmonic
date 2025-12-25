@@ -22,6 +22,8 @@
 #include <limits>
 #include <math.h>
 #include <vector>
+#include <gz/transport.hh>
+#include <gz/msgs.hh>
 
 namespace map_parser {
 
