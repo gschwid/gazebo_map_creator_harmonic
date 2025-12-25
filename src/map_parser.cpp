@@ -156,9 +156,17 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
             }
         });
     if (boxes_exist) {
-        this->size_init = true;
         double x_size = ceil(biggest.X() - smallest.X());
         double y_size = ceil(biggest.Y() - smallest.Y());
         std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
+
+        // Initialize occupancy grid based on the size of the environment. Going to make the size 5cm resolution fow now. Will likely be able to parameterize this later.
+        double x_cells = ceil(x_size / this->GRID_SIZE) + this->PADDING;
+        double y_cells = ceil(y_size / this->GRID_SIZE) + this->PADDING;
+        this->occupancy_grid.resize(y_cells, std::vector<int>(x_cells, 0));
+        std::cout << "x_grid_size " << x_cells << " y_grid_size " << y_cells << std::endl;
+        this->grid_width = int(x_cells);
+        this->grid_height = int(y_cells);
+        this->size_init = true;
     }
 }

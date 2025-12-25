@@ -21,6 +21,7 @@
 #include <gz/math/AxisAlignedBox.hh>
 #include <limits>
 #include <math.h>
+#include <vector>
 
 namespace map_parser {
 
@@ -39,6 +40,10 @@ namespace map_parser {
         
         private:
             bool size_init = false;
-            int *occupancy_array;
+            std::vector<std::vector<int>> occupancy_grid;
+            int grid_width = -1;
+            int grid_height = -1;
+            double GRID_SIZE = 0.05;
+            int PADDING = 10;
         };
 }   
