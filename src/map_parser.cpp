@@ -4,9 +4,35 @@ GZ_ADD_PLUGIN(
     map_parser::MapParser,
     gz::sim::System,
     map_parser::MapParser::ISystemPostUpdate,
-    map_parser::MapParser::ISystemPreUpdate);
+    map_parser::MapParser::ISystemPreUpdate,
+    map_parser::MapParser::ISystemConfigure);
 
 using namespace map_parser;
+
+bool MapParser::getOccupancyGridService(
+    const gz::msgs::Empty &_req,
+    const gz::msgs::OccupancyGrid &_res)
+{
+    if (!this->size_init)
+    {
+        gzerr << "Occupancy grid has not been initialized yet." << std::endl;
+        return false;
+    }
+    else {
+        gz::msgs::OccupancyGrid msg;
+        msg.mutable_info()->set_height(this->grid_height);
+        msg.mutable_info()->set_width(this->grid_width);
+        
+        return true;
+    }
+}
+
+void MapParser::Configure(const gz::sim::Entity &_entity,
+               const std::shared_ptr<const sdf::Element> &_sdf,
+               gz::sim::EntityComponentManager &_ecm,
+               gz::sim::EventManager &_eventMgr)
+{
+}
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
                           gz::sim::EntityComponentManager &_ecem)
@@ -155,7 +181,8 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
                 return true;
             }
         });
-    if (boxes_exist) {
+    if (boxes_exist)
+    {
         double x_size = ceil(biggest.X() - smallest.X());
         double y_size = ceil(biggest.Y() - smallest.Y());
         std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;

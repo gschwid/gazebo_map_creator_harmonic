@@ -24,27 +24,38 @@
 #include <vector>
 #include <gz/transport.hh>
 #include <gz/msgs.hh>
+#include <gz/msgs/occupancy_grid.pb.h>
 
 namespace map_parser {
 
     class MapParser:
         public gz::sim::System,
         public gz::sim::ISystemPostUpdate,
-        public gz::sim::ISystemPreUpdate
+        public gz::sim::ISystemPreUpdate,
+        public gz::sim::ISystemConfigure
         {
         public:
             void PostUpdate(const gz::sim::UpdateInfo &_info,
                 const gz::sim::EntityComponentManager &_ecm) override;
             void PreUpdate(const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+            void Configure(const gz::sim::Entity &_entity,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           gz::sim::EntityComponentManager &_ecm,
+                           gz::sim::EventManager &_eventMgr) override;
             void getDimensions(gz::sim::EntityComponentManager & _ecem);
             void getObstacles(const gz::sim::EntityComponentManager & _ecem);
         
         private:
+            bool getOccupancyGridService(
+                const gz::msgs::Empty &_req,
+                const gz::msgs::OccupancyGrid &_res);
             bool size_init = false;
+            gz::transport::Node node;
+            std::string service = "/map_parser/occupancy_grid";
             std::vector<std::vector<int>> occupancy_grid;
-            int grid_width = -1;
-            int grid_height = -1;
+            u_int32_t grid_width = -1;
+            u_int32_t grid_height = -1;
             double GRID_SIZE = 0.05;
             int PADDING = 10;
         };
