@@ -11,7 +11,7 @@ using namespace map_parser;
 
 bool MapParser::getOccupancyGridService(
     const gz::msgs::Empty &_req,
-    const gz::msgs::OccupancyGrid &_res)
+    gz::msgs::OccupancyGrid &_res)
 {
     if (!this->size_init)
     {
@@ -19,9 +19,13 @@ bool MapParser::getOccupancyGridService(
         return false;
     }
     else {
-        gz::msgs::OccupancyGrid msg;
-        msg.mutable_info()->set_height(this->grid_height);
-        msg.mutable_info()->set_width(this->grid_width);
+        _res.mutable_info()->set_height(this->grid_height);
+        _res.mutable_info()->set_width(this->grid_width);
+        _res.mutable_info()->set_resolution(this->GRID_SIZE);
+        _res.mutable_info()->mutable_origin()->mutable_position()->set_x(0.0); // These need to be updated depending on the map, I dont do that right now.
+        _res.mutable_info()->mutable_origin()->mutable_position()->set_y(0.0);
+        _res.set_data(this->occupancy_grid.data(), this->occupancy_grid.size());
+        gzmsg << "Sending occupancy grid of size: " << this->occupancy_grid.size() << std::endl;
         
         return true;
     }
@@ -32,6 +36,11 @@ void MapParser::Configure(const gz::sim::Entity &_entity,
                gz::sim::EntityComponentManager &_ecm,
                gz::sim::EventManager &_eventMgr)
 {
+      if (!node.Advertise(service, &MapParser::getOccupancyGridService, this)) {
+            std::cerr << "Error advertising service [" << service << "]" << std::endl;
+            return;
+      }
+
 }
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
@@ -190,7 +199,7 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
         // Initialize occupancy grid based on the size of the environment. Going to make the size 5cm resolution fow now. Will likely be able to parameterize this later.
         double x_cells = ceil(x_size / this->GRID_SIZE) + this->PADDING;
         double y_cells = ceil(y_size / this->GRID_SIZE) + this->PADDING;
-        this->occupancy_grid.resize(y_cells, std::vector<int>(x_cells, 0));
+        this->occupancy_grid.resize(y_cells * x_cells, 0);
         std::cout << "x_grid_size " << x_cells << " y_grid_size " << y_cells << std::endl;
         this->grid_width = int(x_cells);
         this->grid_height = int(y_cells);

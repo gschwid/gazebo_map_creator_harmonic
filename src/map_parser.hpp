@@ -49,14 +49,14 @@ namespace map_parser {
         private:
             bool getOccupancyGridService(
                 const gz::msgs::Empty &_req,
-                const gz::msgs::OccupancyGrid &_res);
+                gz::msgs::OccupancyGrid &_res);
             bool size_init = false;
             gz::transport::Node node;
             std::string service = "/map_parser/occupancy_grid";
-            std::vector<std::vector<int>> occupancy_grid;
+            std::vector<int8_t> occupancy_grid;
             u_int32_t grid_width = -1;
             u_int32_t grid_height = -1;
-            double GRID_SIZE = 0.05;
+            double GRID_SIZE = 0.10;
             int PADDING = 10;
         };
 }   
