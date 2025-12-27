@@ -18,7 +18,8 @@ bool MapParser::getOccupancyGridService(
         gzerr << "Occupancy grid has not been initialized yet." << std::endl;
         return false;
     }
-    else {
+    else
+    {
         _res.mutable_info()->set_height(this->grid_height);
         _res.mutable_info()->set_width(this->grid_width);
         _res.mutable_info()->set_resolution(this->GRID_SIZE);
@@ -26,21 +27,21 @@ bool MapParser::getOccupancyGridService(
         _res.mutable_info()->mutable_origin()->mutable_position()->set_y(0.0);
         _res.set_data(this->occupancy_grid.data(), this->occupancy_grid.size());
         gzmsg << "Sending occupancy grid of size: " << this->occupancy_grid.size() << std::endl;
-        
+
         return true;
     }
 }
 
 void MapParser::Configure(const gz::sim::Entity &_entity,
-               const std::shared_ptr<const sdf::Element> &_sdf,
-               gz::sim::EntityComponentManager &_ecm,
-               gz::sim::EventManager &_eventMgr)
+                          const std::shared_ptr<const sdf::Element> &_sdf,
+                          gz::sim::EntityComponentManager &_ecm,
+                          gz::sim::EventManager &_eventMgr)
 {
-      if (!node.Advertise(service, &MapParser::getOccupancyGridService, this)) {
-            std::cerr << "Error advertising service [" << service << "]" << std::endl;
-            return;
-      }
-
+    if (!node.Advertise(service, &MapParser::getOccupancyGridService, this))
+    {
+        std::cerr << "Error advertising service [" << service << "]" << std::endl;
+        return;
+    }
 }
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
@@ -140,48 +141,56 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
     bool boxes_exist = true;
 
     // Loop through all AABB componenets and find the min and max values
-    _ecem.Each<gz::sim::components::Model>(
-        [&smallest, &biggest, &_ecem, &boxes_exist](const gz::sim::Entity &_entity, const gz::sim::components::Model *model)
+    _ecem.Each<gz::sim::components::Model, gz::sim::components::Name>(
+        [&smallest, &biggest, &_ecem, &boxes_exist](const gz::sim::Entity &_entity, const gz::sim::components::Model *model, const gz::sim::components::Name *name) -> bool
         {
             // Check if AABB box exists for this entity
             auto found_box = _ecem.Component<gz::sim::components::AxisAlignedBox>(_entity);
             if (found_box)
             {
-                // Update values if the bounding box exists.
-                gz::math::AxisAlignedBox box = found_box->Data();
-                gz::math::Vector3d cur_min = box.Min();
-                gz::math::Vector3d cur_max = box.Max();
-                std::cout << "cur_x_min " << cur_min.X() << " cur_y_min " << cur_min.Y() << std::endl;
-                std::cout << "cur_x_max " << cur_max.X() << " cur_y_max " << cur_max.Y() << std::endl;
+                // Dont want to include ground plane because its huge.
+                if (name->Data() != "ground_plane")
+                {
+                    // Update values if the bounding box exists.
+                    gz::math::AxisAlignedBox box = found_box->Data();
+                    gz::math::Vector3d cur_min = box.Min();
+                    gz::math::Vector3d cur_max = box.Max();
+                    std::cout << "Name: " << name->Data() << std::endl;
+                    std::cout << "cur_x_min " << cur_min.X() << " cur_y_min " << cur_min.Y() << std::endl;
+                    std::cout << "cur_x_max " << cur_max.X() << " cur_y_max " << cur_max.Y() << std::endl;
 
-                // Probably a better way to do this comparison...
-                if (smallest.X() > cur_min.X())
-                {
-                    smallest.X() = cur_min.X();
-                }
-                if (smallest.Y() > cur_min.Y())
-                {
-                    smallest.Y() = cur_min.Y();
-                }
-                if (smallest.Z() > cur_min.Z())
-                {
-                    smallest.Z() = cur_min.Z();
+                    // Probably a better way to do this comparison...
+                    if (smallest.X() > cur_min.X())
+                    {
+                        smallest.X() = cur_min.X();
+                    }
+                    if (smallest.Y() > cur_min.Y())
+                    {
+                        smallest.Y() = cur_min.Y();
+                    }
+                    if (smallest.Z() > cur_min.Z())
+                    {
+                        smallest.Z() = cur_min.Z();
+                    }
+
+                    if (biggest.X() < cur_max.X())
+                    {
+                        biggest.X() = cur_max.X();
+                    }
+                    if (biggest.Y() < cur_max.Y())
+                    {
+                        biggest.Y() = cur_max.Y();
+                    }
+                    if (biggest.Z() < cur_max.Z())
+                    {
+                        biggest.Z() = cur_max.Z();
+                    }
                 }
 
-                if (biggest.X() < cur_max.X())
-                {
-                    biggest.X() = cur_max.X();
-                }
-                if (biggest.Y() < cur_max.Y())
-                {
-                    biggest.Y() = cur_max.Y();
-                }
-                if (biggest.Z() < cur_max.Z())
-                {
-                    biggest.Z() = cur_max.Z();
-                }
                 return true;
             }
+
+            // Create AABB box since they are not created by default.
             else
             {
                 std::cout << "No Bounding box found for model... Creating one" << std::endl;
@@ -190,6 +199,7 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
                 return true;
             }
         });
+
     if (boxes_exist)
     {
         double x_size = ceil(biggest.X() - smallest.X());
