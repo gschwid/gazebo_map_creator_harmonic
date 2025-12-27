@@ -7,6 +7,8 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 find_package(gz_sim_vendor REQUIRED)
 find_package(gz_plugin_vendor REQUIRED)
@@ -26,8 +28,17 @@ target_link_libraries(MapParser
   PRIVATE gz-msgs10::core
   )
 
+add_executable(map_node src/map_node.cpp)
+ament_target_dependencies(map_node
+  rclcpp
+  nav_msgs
+  std_msgs
+)
 install(TARGETS MapParser
   LIBRARY DESTINATION lib)
+
+install(TARGETS map_node
+  DESTINATION lib/${PROJECT_NAME})
 
 
 if(BUILD_TESTING)
