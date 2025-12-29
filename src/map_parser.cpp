@@ -9,41 +9,27 @@ GZ_ADD_PLUGIN(
 
 using namespace map_parser;
 
-void MapParser::threadedRosCallback(){
+void MapParser::threadedRosCallback()
+{
     rclcpp::spin(this->ros_node);
 }
 
-MapParser::~MapParser() {
+MapParser::~MapParser()
+{
 
     rclcpp::shutdown();
-    if (this->ros_thread.joinable()) {
+    if (this->ros_thread.joinable())
+    {
         this->ros_thread.join();
         std::cout << "We cleaned up ROS like a boss" << std::endl;
     }
-
-    
 }
 
-bool MapParser::getOccupancyGridService(
-    const gz::msgs::Empty &_req,
-    gz::msgs::OccupancyGrid &_res)
+void MapParser::getOccupancyGridService(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response)
 {
     if (!this->size_init)
     {
         gzerr << "Occupancy grid has not been initialized yet." << std::endl;
-        return false;
-    }
-    else
-    {
-        _res.mutable_info()->set_height(this->grid_height);
-        _res.mutable_info()->set_width(this->grid_width);
-        _res.mutable_info()->set_resolution(this->GRID_SIZE);
-        _res.mutable_info()->mutable_origin()->mutable_position()->set_x(0.0); // These need to be updated depending on the map, I dont do that right now.
-        _res.mutable_info()->mutable_origin()->mutable_position()->set_y(0.0);
-        _res.set_data(this->occupancy_grid.data(), this->occupancy_grid.size());
-        gzmsg << "Sending occupancy grid of size: " << this->occupancy_grid.size() << std::endl;
-
-        return true;
     }
 }
 
@@ -52,11 +38,13 @@ void MapParser::Configure(const gz::sim::Entity &_entity,
                           gz::sim::EntityComponentManager &_ecm,
                           gz::sim::EventManager &_eventMgr)
 {
-    if (!rclcpp::ok()) {
+    if (!rclcpp::ok())
+    {
         rclcpp::init(0, nullptr);
     }
     this->ros_node = std::make_shared<rclcpp::Node>("map_parser");
     this->ros_thread = std::thread(&MapParser::threadedRosCallback, this);
+    this->occupancy_service = this->ros_node->create_service<nav_msgs::srv::GetMap>("/occupancy_service", std::bind(&MapParser::getOccupancyGridService, this, _1, _2));
 }
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,

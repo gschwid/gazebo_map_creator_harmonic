@@ -30,42 +30,42 @@
 #include <nav_msgs/srv/get_map.hpp>
 #include <thread>
 
+using std::placeholders::_1;
+using std::placeholders::_2;
 
-namespace map_parser {
+namespace map_parser
+{
 
-    class MapParser:
-        public gz::sim::System,
-        public gz::sim::ISystemPostUpdate,
-        public gz::sim::ISystemPreUpdate,
-        public gz::sim::ISystemConfigure
-        {
-        public:
-            void PostUpdate(const gz::sim::UpdateInfo &_info,
-                const gz::sim::EntityComponentManager &_ecm) override;
-            void PreUpdate(const gz::sim::UpdateInfo &_info,
-                gz::sim::EntityComponentManager &_ecm) override;
-            void Configure(const gz::sim::Entity &_entity,
-                           const std::shared_ptr<const sdf::Element> &_sdf,
-                           gz::sim::EntityComponentManager &_ecm,
-                           gz::sim::EventManager &_eventMgr) override;
-            void getDimensions(gz::sim::EntityComponentManager & _ecem);
-            void getObstacles(const gz::sim::EntityComponentManager & _ecem);
-            ~MapParser();
-        
-        private:
-            bool getOccupancyGridService(
-                const gz::msgs::Empty &_req,
-                gz::msgs::OccupancyGrid &_res);
-            void threadedRosCallback();
-            bool size_init = false;
-            std::string service = "/map_parser/occupancy_grid";
-            std::vector<int8_t> occupancy_grid;
-            u_int32_t grid_width = -1;
-            u_int32_t grid_height = -1;
-            double GRID_SIZE = 0.10;
-            int PADDING = 10;
-            rclcpp::Node::SharedPtr ros_node;
-            std::thread ros_thread;
+    class MapParser : public gz::sim::System,
+                      public gz::sim::ISystemPostUpdate,
+                      public gz::sim::ISystemPreUpdate,
+                      public gz::sim::ISystemConfigure
+    {
+    public:
+        void PostUpdate(const gz::sim::UpdateInfo &_info,
+                        const gz::sim::EntityComponentManager &_ecm) override;
+        void PreUpdate(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm) override;
+        void Configure(const gz::sim::Entity &_entity,
+                       const std::shared_ptr<const sdf::Element> &_sdf,
+                       gz::sim::EntityComponentManager &_ecm,
+                       gz::sim::EventManager &_eventMgr) override;
+        void getDimensions(gz::sim::EntityComponentManager &_ecem);
+        void getObstacles(const gz::sim::EntityComponentManager &_ecem);
+        ~MapParser();
 
-        };
-}   
+    private:
+        void getOccupancyGridService(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response);
+        void threadedRosCallback();
+        bool size_init = false;
+        std::string service = "/map_parser/occupancy_grid";
+        std::vector<int8_t> occupancy_grid;
+        u_int32_t grid_width = -1;
+        u_int32_t grid_height = -1;
+        double GRID_SIZE = 0.10;
+        int PADDING = 10;
+        rclcpp::Node::SharedPtr ros_node;
+        std::shared_ptr<rclcpp::Service<nav_msgs::srv::GetMap>> occupancy_service;
+        std::thread ros_thread;
+    };
+}
