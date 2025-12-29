@@ -27,10 +27,7 @@ MapParser::~MapParser()
 
 void MapParser::getOccupancyGridService(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response)
 {
-    if (!this->size_init)
-    {
-        gzerr << "Occupancy grid has not been initialized yet." << std::endl;
-    }
+    this->generate_grid = true;
 }
 
 void MapParser::Configure(const gz::sim::Entity &_entity,
@@ -44,6 +41,7 @@ void MapParser::Configure(const gz::sim::Entity &_entity,
     }
     this->ros_node = std::make_shared<rclcpp::Node>("map_parser");
     this->ros_thread = std::thread(&MapParser::threadedRosCallback, this);
+    this->occupancy_pub = this->ros_node->create_publisher<nav_msgs::msg::OccupancyGrid>("/map_parser/occupancy_grid", 10);
     this->occupancy_service = this->ros_node->create_service<nav_msgs::srv::GetMap>("/occupancy_service", std::bind(&MapParser::getOccupancyGridService, this, _1, _2));
 }
 

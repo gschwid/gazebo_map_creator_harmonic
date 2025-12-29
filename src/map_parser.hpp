@@ -28,6 +28,7 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/srv/get_map.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
 #include <thread>
 
 using std::placeholders::_1;
@@ -66,6 +67,8 @@ namespace map_parser
         int PADDING = 10;
         rclcpp::Node::SharedPtr ros_node;
         std::shared_ptr<rclcpp::Service<nav_msgs::srv::GetMap>> occupancy_service;
+        rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_pub;
+        bool generate_grid = false;
         std::thread ros_thread;
     };
 }
