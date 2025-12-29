@@ -25,6 +25,11 @@
 #include <gz/transport.hh>
 #include <gz/msgs.hh>
 #include <gz/msgs/occupancy_grid.pb.h>
+#include <memory>
+#include <rclcpp/rclcpp.hpp>
+#include <nav_msgs/srv/get_map.hpp>
+#include <thread>
+
 
 namespace map_parser {
 
@@ -45,18 +50,22 @@ namespace map_parser {
                            gz::sim::EventManager &_eventMgr) override;
             void getDimensions(gz::sim::EntityComponentManager & _ecem);
             void getObstacles(const gz::sim::EntityComponentManager & _ecem);
+            ~MapParser();
         
         private:
             bool getOccupancyGridService(
                 const gz::msgs::Empty &_req,
                 gz::msgs::OccupancyGrid &_res);
+            void threadedRosCallback();
             bool size_init = false;
-            gz::transport::Node node;
             std::string service = "/map_parser/occupancy_grid";
             std::vector<int8_t> occupancy_grid;
             u_int32_t grid_width = -1;
             u_int32_t grid_height = -1;
             double GRID_SIZE = 0.10;
             int PADDING = 10;
+            rclcpp::Node::SharedPtr ros_node;
+            std::thread ros_thread;
+
         };
 }   

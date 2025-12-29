@@ -12,6 +12,8 @@ class MapNode : public rclcpp::Node {
         }
 
     private:
-        void GetGrid(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response);
+        void GetGrid(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response) {
+
+        }
         std::shared_ptr<rclcpp::Service<nav_msgs::srv::GetMap>> occupancy_service;
 };

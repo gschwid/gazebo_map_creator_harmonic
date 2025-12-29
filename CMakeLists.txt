@@ -5,6 +5,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -26,19 +28,23 @@ target_link_libraries(MapParser
   PRIVATE gz-sim8::gz-sim8
   PRIVATE gz-transport13::core
   PRIVATE gz-msgs10::core
-  )
+  PRIVATE rclcpp::rclcpp
+  PRIVATE nav_msgs::nav_msgs__rosidl_generator_cpp
+  PRIVATE std_msgs::std_msgs__rosidl_generator_cpp
 
-add_executable(map_node src/map_node.cpp)
-ament_target_dependencies(map_node
-  rclcpp
-  nav_msgs
-  std_msgs
 )
+
+# add_executable(map_node src/map_node.cpp)
+# ament_target_dependencies(map_node
+#   rclcpp
+#   nav_msgs
+#   std_msgs
+# )
 install(TARGETS MapParser
   LIBRARY DESTINATION lib)
 
-install(TARGETS map_node
-  DESTINATION lib/${PROJECT_NAME})
+# install(TARGETS map_node
+#   DESTINATION lib/${PROJECT_NAME})
 
 
 if(BUILD_TESTING)

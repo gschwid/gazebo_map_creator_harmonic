@@ -9,6 +9,21 @@ GZ_ADD_PLUGIN(
 
 using namespace map_parser;
 
+void MapParser::threadedRosCallback(){
+    rclcpp::spin(this->ros_node);
+}
+
+MapParser::~MapParser() {
+
+    rclcpp::shutdown();
+    if (this->ros_thread.joinable()) {
+        this->ros_thread.join();
+        std::cout << "We cleaned up ROS like a boss" << std::endl;
+    }
+
+    
+}
+
 bool MapParser::getOccupancyGridService(
     const gz::msgs::Empty &_req,
     gz::msgs::OccupancyGrid &_res)
@@ -37,11 +52,11 @@ void MapParser::Configure(const gz::sim::Entity &_entity,
                           gz::sim::EntityComponentManager &_ecm,
                           gz::sim::EventManager &_eventMgr)
 {
-    if (!node.Advertise(service, &MapParser::getOccupancyGridService, this))
-    {
-        std::cerr << "Error advertising service [" << service << "]" << std::endl;
-        return;
+    if (!rclcpp::ok()) {
+        rclcpp::init(0, nullptr);
     }
+    this->ros_node = std::make_shared<rclcpp::Node>("map_parser");
+    this->ros_thread = std::thread(&MapParser::threadedRosCallback, this);
 }
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
