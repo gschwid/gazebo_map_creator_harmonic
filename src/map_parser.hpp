@@ -30,6 +30,7 @@
 #include <nav_msgs/srv/get_map.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <thread>
+#include <std_srvs/srv/empty.hpp>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -56,9 +57,8 @@ namespace map_parser
         ~MapParser();
 
     private:
-        void getOccupancyGridService(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response);
+        void getOccupancyGridService(const std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response);
         void threadedRosCallback();
-        bool size_init = false;
         std::string service = "/map_parser/occupancy_grid";
         std::vector<int8_t> occupancy_grid;
         u_int32_t grid_width = -1;
@@ -66,9 +66,11 @@ namespace map_parser
         double GRID_SIZE = 0.10;
         int PADDING = 10;
         rclcpp::Node::SharedPtr ros_node;
-        std::shared_ptr<rclcpp::Service<nav_msgs::srv::GetMap>> occupancy_service;
+        std::shared_ptr<rclcpp::Service<std_srvs::srv::Empty>> occupancy_service;
         rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancy_pub;
         bool generate_grid = false;
+        bool size_init = false;
+        bool grid_generated = false;
         std::thread ros_thread;
     };
 }

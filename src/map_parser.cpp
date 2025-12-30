@@ -25,9 +25,11 @@ MapParser::~MapParser()
     }
 }
 
-void MapParser::getOccupancyGridService(const std::shared_ptr<nav_msgs::srv::GetMap::Request> request, std::shared_ptr<nav_msgs::srv::GetMap::Response> response)
+void MapParser::getOccupancyGridService(const std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response)
 {
     this->generate_grid = true;
+    this->grid_generated = false;
+    RCLCPP_INFO(this->ros_node->get_logger(), "Service call successful.. Generating Occupancy grid");
 }
 
 void MapParser::Configure(const gz::sim::Entity &_entity,
@@ -42,7 +44,7 @@ void MapParser::Configure(const gz::sim::Entity &_entity,
     this->ros_node = std::make_shared<rclcpp::Node>("map_parser");
     this->ros_thread = std::thread(&MapParser::threadedRosCallback, this);
     this->occupancy_pub = this->ros_node->create_publisher<nav_msgs::msg::OccupancyGrid>("/map_parser/occupancy_grid", 10);
-    this->occupancy_service = this->ros_node->create_service<nav_msgs::srv::GetMap>("/occupancy_service", std::bind(&MapParser::getOccupancyGridService, this, _1, _2));
+    this->occupancy_service = this->ros_node->create_service<std_srvs::srv::Empty>("/occupancy_service", std::bind(&MapParser::getOccupancyGridService, this, _1, _2));
 }
 
 void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
@@ -57,10 +59,25 @@ void MapParser::PreUpdate(const gz::sim::UpdateInfo &_info,
 void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
                            const gz::sim::EntityComponentManager &_ecem)
 {
-    // if (true)
-    // {
-    //     this->getDimensions(_ecem);
-    // }
+    // Service got called to generate grid
+    if (this->generate_grid) {
+        if (!this->size_init) {
+            gzmsg << "Need map size to be initialized" << std::endl;
+        }
+
+        this->grid_generated = true;
+        this->generate_grid = false;
+    }
+
+    if (this->grid_generated) {
+        nav_msgs::msg::OccupancyGrid grid;
+        grid.data = this->occupancy_grid;
+        grid.info.height = this->grid_height;
+        grid.info.width = this->grid_width;
+        grid.info.resolution = this->GRID_SIZE;
+        grid.header.frame_id = "map";
+        this->occupancy_pub->publish(grid);
+    }
 
     //     if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
     //     gzmsg << "Found Model Entity [" << _entity << "] with Name: "

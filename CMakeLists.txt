@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 find_package(gz_sim_vendor REQUIRED)
 find_package(gz_plugin_vendor REQUIRED)
@@ -29,8 +30,9 @@ target_link_libraries(MapParser
   PRIVATE gz-transport13::core
   PRIVATE gz-msgs10::core
   PRIVATE rclcpp::rclcpp
-  PRIVATE nav_msgs::nav_msgs__rosidl_generator_cpp
-  PRIVATE std_msgs::std_msgs__rosidl_generator_cpp
+  PRIVATE nav_msgs::nav_msgs__rosidl_typesupport_cpp
+  PRIVATE std_msgs::std_msgs__rosidl_typesupport_cpp
+  PRIVATE std_srvs::std_srvs__rosidl_typesupport_cpp
 
 )
 
