@@ -76,6 +76,7 @@ void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
         grid.info.width = this->grid_width;
         grid.info.resolution = this->GRID_SIZE;
         grid.header.frame_id = "map";
+        grid.info.origin = this->origin;
         this->occupancy_pub->publish(grid);
     }
 
@@ -222,6 +223,10 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
     {
         double x_size = ceil(biggest.X() - smallest.X());
         double y_size = ceil(biggest.Y() - smallest.Y());
+        this->origin.position.x = smallest.X();
+        this->origin.position.y = smallest.Y();
+        this->origin.position.z = 0.0;
+
         std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
 
         // Initialize occupancy grid based on the size of the environment. Going to make the size 5cm resolution fow now. Will likely be able to parameterize this later.

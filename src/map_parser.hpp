@@ -29,6 +29,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/srv/get_map.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#include <geometry_msgs/msg/pose.hpp>
 #include <thread>
 #include <std_srvs/srv/empty.hpp>
 
@@ -72,5 +73,6 @@ namespace map_parser
         bool size_init = false;
         bool grid_generated = false;
         std::thread ros_thread;
+        geometry_msgs::msg::Pose origin;
     };
 }
