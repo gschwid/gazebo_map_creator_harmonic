@@ -60,16 +60,21 @@ void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
                            const gz::sim::EntityComponentManager &_ecem)
 {
     // Service got called to generate grid
-    if (this->generate_grid) {
-        if (!this->size_init) {
+    if (this->generate_grid)
+    {
+        if (!this->size_init)
+        {
             gzmsg << "Need map size to be initialized" << std::endl;
+            return;
         }
 
+        this->getObstacles(_ecem);
         this->grid_generated = true;
         this->generate_grid = false;
     }
 
-    if (this->grid_generated) {
+    if (this->grid_generated)
+    {
         nav_msgs::msg::OccupancyGrid grid;
         grid.data = this->occupancy_grid;
         grid.info.height = this->grid_height;
@@ -79,30 +84,18 @@ void MapParser::PostUpdate(const gz::sim::UpdateInfo &_info,
         grid.info.origin = this->origin;
         this->occupancy_pub->publish(grid);
     }
-
-    //     if (_geometry->Data().Type() == sdf::GeometryType::PLANE){
-    //     gzmsg << "Found Model Entity [" << _entity << "] with Name: "
-    //     << " and Geometry: " << _geometry->Data().PlaneShape()->Size().X() << std::endl;
-    //       return true;
-    //     }
-    //     return false;
-
-    // std::string msg = "Hello, world! Simulation is ";
-    // if (!_info.paused)
-    // msg += "not ";
-    // msg += "paused.";
-
-    // Messages printed with gzmsg only show when running with verbosity 3 or
-    // higher (i.e. gz sim -v 3)
-    // gzmsg << msg << std::endl;
 }
 
 void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 {
 
-    _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry>(
-        [&_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Collision *_model, const gz::sim::components::Geometry *_geom) -> bool
-        {
+    _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry, gz::sim::components::Name>(
+        [&_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Collision *_model, const gz::sim::components::Geometry *_geom, const gz::sim::components::Name *name) -> bool
+        {   
+
+            // Dont want to include ground plane
+            if (name->Data() != "ground_plane") {
+
             // Get world pose of each collision object
             gz::math::Pose3d worldPose = gz::sim::worldPose(_entity, _ecem);
             gzmsg << "X: " << worldPose.Pos().X() << " Y: " << worldPose.Pos().Y() << " Z: " << worldPose.Pos().Z() << std::endl;
@@ -143,10 +136,23 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                 scale.Z() = scale.X();
             }
 
-            gzmsg << "Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
+            else if (_geom->Data().Type() == sdf::GeometryType::MESH) {
+
+                auto path = gz::sim::asFullPath(_geom->Data().MeshShape()->Uri(), _geom->Data().MeshShape()->FilePath());
+                gzmsg << _geom->Data().MeshShape()->FilePath() << " " << _geom->Data().MeshShape()->Uri() << std::endl;
+                
+            }
+
+            else {
+                gzmsg << "This is unrecognized BRU" << std::endl;
+                return true;
+            }
+
+            gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
 
             return true;
-        });
+    } 
+});
 }
 
 void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
@@ -223,9 +229,6 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
     {
         double x_size = ceil(biggest.X() - smallest.X());
         double y_size = ceil(biggest.Y() - smallest.Y());
-        this->origin.position.x = smallest.X();
-        this->origin.position.y = smallest.Y();
-        this->origin.position.z = 0.0;
 
         std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
 
@@ -237,5 +240,8 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
         this->grid_width = int(x_cells);
         this->grid_height = int(y_cells);
         this->size_init = true;
+        this->origin.position.x = smallest.X();
+        this->origin.position.y = smallest.Y();
+        this->origin.position.z = 0.0;
     }
 }

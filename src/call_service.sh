@@ -1,0 +1,1 @@
+ros2 service call /occupancy_service std_srvs/srv/Empty "{}"
