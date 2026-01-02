@@ -104,12 +104,30 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
             gz::math::Vector3d scale;
 
             if (_geom->Data().Type() == sdf::GeometryType::BOX)
-            {
+            {   
+
+                // Making a draft of the occupancy grid filling feature.
                 scale = _geom->Data().BoxShape()->Size();
                 gzmsg << "This is a box" << std::endl;
-                int x_inarray = int ((worldPose.X() + 15) / GRID_SIZE);
-                int y_inarray = int ((worldPose.Y() + 25) / GRID_SIZE);
-                occupancy_grid[x_inarray + (this->grid_width * y_inarray)] = 127;
+                int x_inarray = int ((worldPose.X() - (this->origin.position.x)) / GRID_SIZE);
+                int y_inarray = int ((worldPose.Y() - (this->origin.position.y)) / GRID_SIZE);
+                double half_x = (scale.X() / 2.0) / GRID_SIZE;
+                double half_y = (scale.Y() / 2.0) / GRID_SIZE;
+
+                int x_start = std::floor(x_inarray - half_x);
+                int x_end = std::ceil(x_inarray + half_x);
+                int y_start = std::floor(y_inarray - half_y);
+                int y_end = std::ceil(y_inarray + half_y);
+
+                std::cout << x_start << " " << x_end << " " << y_start << " " << y_end << std::endl;
+
+                for (int i = x_start; i < x_end; i++){
+                    for (int j = y_start; j < y_end; j++){
+                        occupancy_grid[i + grid_width * j] = OCCUPIED;
+                    }
+                }
+                gzmsg << "x_inarray " << x_inarray << " y_inarray " << y_inarray << std::endl;
+
             }
 
             else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -149,8 +167,8 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
             }
 
             gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-            return true;
-    } 
+    }
+    return true;
 });
 }
 

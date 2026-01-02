@@ -74,5 +74,6 @@ namespace map_parser
         bool grid_generated = false;
         std::thread ros_thread;
         geometry_msgs::msg::Pose origin;
+        int OCCUPIED = 127;
     };
 }
