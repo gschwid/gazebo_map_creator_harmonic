@@ -90,7 +90,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 {
 
     _ecem.Each<gz::sim::components::Collision, gz::sim::components::Geometry, gz::sim::components::Name>(
-        [&_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Collision *_model, const gz::sim::components::Geometry *_geom, const gz::sim::components::Name *name) -> bool
+        [this, &_ecem](const gz::sim::Entity &_entity, const gz::sim::components::Collision *_model, const gz::sim::components::Geometry *_geom, const gz::sim::components::Name *name) -> bool
         {   
 
             // Dont want to include ground plane
@@ -106,6 +106,10 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
             if (_geom->Data().Type() == sdf::GeometryType::BOX)
             {
                 scale = _geom->Data().BoxShape()->Size();
+                gzmsg << "This is a box" << std::endl;
+                int x_inarray = int ((worldPose.X() + 15) / GRID_SIZE);
+                int y_inarray = int ((worldPose.Y() + 25) / GRID_SIZE);
+                occupancy_grid[x_inarray + (this->grid_width * y_inarray)] = 127;
             }
 
             else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
@@ -113,6 +117,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                 scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
                 scale.Y() = scale.X();
                 scale.Z() = _geom->Data().CylinderShape()->Length();
+                gzmsg << "This is a cylinder" << std::endl;
             }
 
             else if (_geom->Data().Type() == sdf::GeometryType::SPHERE)
@@ -120,6 +125,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                 scale.X() = _geom->Data().SphereShape()->Radius() * 2;
                 scale.Y() = scale.X();
                 scale.Z() = scale.X();
+                gzmsg << "This is a sphere" << std::endl;
             }
 
             else if (_geom->Data().Type() == sdf::GeometryType::PLANE)
@@ -127,13 +133,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                 scale.X() = _geom->Data().PlaneShape()->Size().X();
                 scale.Y() = _geom->Data().PlaneShape()->Size().Y();
                 scale.Z() = 0;
-            }
-
-            else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
-            {
-                scale.X() = _geom->Data().CylinderShape()->Radius() * 2;
-                scale.Y() = scale.X();
-                scale.Z() = scale.X();
+                gzmsg << "This is a plane" << std::endl;
             }
 
             else if (_geom->Data().Type() == sdf::GeometryType::MESH) {
@@ -149,7 +149,6 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
             }
 
             gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-
             return true;
     } 
 });
@@ -233,8 +232,8 @@ void MapParser::getDimensions(gz::sim::EntityComponentManager &_ecem)
         std::cout << "x_size " << x_size << " y_size " << y_size << std::endl;
 
         // Initialize occupancy grid based on the size of the environment. Going to make the size 5cm resolution fow now. Will likely be able to parameterize this later.
-        double x_cells = ceil(x_size / this->GRID_SIZE) + this->PADDING;
-        double y_cells = ceil(y_size / this->GRID_SIZE) + this->PADDING;
+        double x_cells = ceil(x_size / this->GRID_SIZE);
+        double y_cells = ceil(y_size / this->GRID_SIZE);
         this->occupancy_grid.resize(y_cells * x_cells, 0);
         std::cout << "x_grid_size " << x_cells << " y_grid_size " << y_cells << std::endl;
         this->grid_width = int(x_cells);
