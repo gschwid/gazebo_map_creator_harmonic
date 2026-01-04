@@ -28,6 +28,7 @@ MapParser::~MapParser()
 void MapParser::getOccupancyGridService(const std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response)
 {
     this->generate_grid = true;
+    for (int8_t& num: this->occupancy_grid) num = 0;
     this->grid_generated = false;
     RCLCPP_INFO(this->ros_node->get_logger(), "Service call successful.. Generating Occupancy grid");
 }
@@ -141,7 +142,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                     for (int i = x_start; i < x_end; i++) {
                         for (int j = y_start; j < y_end; j++) {
-                             occupancy_grid[i + grid_width * j] = OCCUPIED;
+                            occupancy_grid[i + grid_width * j] = OCCUPIED;
                         }
                     }
                     
