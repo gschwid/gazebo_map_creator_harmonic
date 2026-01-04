@@ -128,23 +128,39 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     gz::math::v7::Vector3d wbl = (rotation * bl) + worldPose.Pos();
                     gz::math::v7::Vector3d wtr = (rotation * tr) + worldPose.Pos();
                     gz::math::v7::Vector3d wbr = (rotation * br) + worldPose.Pos();
+
+                    // Get min and max and translate that to the occupancy grid
+                    double min_x = std::min({wtl.X(), wbl.X(), wtr.X(), wbr.X()});
+                    double min_y = std::min({wtl.Y(), wbl.Y(), wtr.Y(), wbr.Y()});
+                    double max_x = std::max({wtl.X(), wbl.X(), wtr.X(), wbr.X()});
+                    double max_y = std::max({wtl.Y(), wbl.Y(), wtr.Y(), wbr.Y()});
+                    int x_start = (min_x - origin.position.x) / GRID_SIZE;
+                    int x_end = (max_x - origin.position.x) / GRID_SIZE;
+                    int y_start = (min_y - origin.position.y) / GRID_SIZE;
+                    int y_end = (max_y - origin.position.y) / GRID_SIZE;
+
+                    for (int i = x_start; i < x_end; i++) {
+                        for (int j = y_start; j < y_end; j++) {
+                             occupancy_grid[i + grid_width * j] = OCCUPIED;
+                        }
+                    }
                     
                     std::cout << "----------------\n" << wtl << " " << wbl << " " << wtr << " " << wbr << std::endl;
 
-                    int x_start = std::floor(x_inarray - half_x);
-                    int x_end = std::ceil(x_inarray + half_x);
-                    int y_start = std::floor(y_inarray - half_y);
-                    int y_end = std::ceil(y_inarray + half_y);
+                    // int x_start = std::floor(x_inarray - half_x);
+                    // int x_end = std::ceil(x_inarray + half_x);
+                    // int y_start = std::floor(y_inarray - half_y);
+                    // int y_end = std::ceil(y_inarray + half_y);
 
                     std::cout << x_start << " " << x_end << " " << y_start << " " << y_end << std::endl;
 
-                    for (int i = x_start; i < x_end; i++)
-                    {
-                        for (int j = y_start; j < y_end; j++)
-                        {
-                            occupancy_grid[i + grid_width * j] = OCCUPIED;
-                        }
-                    }
+                    // for (int i = x_start; i < x_end; i++)
+                    // {
+                    //     for (int j = y_start; j < y_end; j++)
+                    //     {
+                    //         occupancy_grid[i + grid_width * j] = OCCUPIED;
+                    //     }
+                    // }
                     gzmsg << origin.position.x << " " << origin.position.y << std::endl;
                     gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
                     gzmsg << "x_inarray " << x_inarray << " y_inarray " << y_inarray << std::endl;
