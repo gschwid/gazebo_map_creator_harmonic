@@ -111,9 +111,6 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     // Making a draft of the occupancy grid filling feature.
                     scale = _geom->Data().BoxShape()->Size();
                     gzmsg << "This is a box" << std::endl;
-
-                    int x_inarray = int((worldPose.X() - (this->origin.position.x)) / GRID_SIZE);
-                    int y_inarray = int((worldPose.Y() - (this->origin.position.y)) / GRID_SIZE);
                     double half_x = (scale.X() / 2.0);
                     double half_y = (scale.Y() / 2.0);
                     double half_z = (scale.Z() / 2.0);
@@ -145,24 +142,30 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     double min_y = std::min({wttl.Y(), wtbl.Y(), wttr.Y(), wtbr.Y(), wbtl.Y(), wbbl.Y(), wbtr.Y(), wbbr.Y()});
                     double max_x = std::max({wttl.X(), wtbl.X(), wttr.X(), wtbr.X(), wbtl.X(), wbbl.X(), wbtr.X(), wbbr.X()});
                     double max_y = std::max({wttl.Y(), wtbl.Y(), wttr.Y(), wtbr.Y(), wbtl.Y(), wbbl.Y(), wbtr.Y(), wbbr.Y()});
+                    double min_z = std::min({wttl.Z(), wtbl.Z(), wttr.Z(), wtbr.Z(), wbtl.Z(), wbbl.Z(), wbtr.Z(), wbbr.Z()});
+                    double max_z = std::max({wttl.Z(), wtbl.Z(), wttr.Z(), wtbr.Z(), wbtl.Z(), wbbl.Z(), wbtr.Z(), wbbr.Z()});
                     int x_start = (min_x - origin.position.x) / GRID_SIZE;
                     int x_end = (max_x - origin.position.x) / GRID_SIZE;
                     int y_start = (min_y - origin.position.y) / GRID_SIZE;
                     int y_end = (max_y - origin.position.y) / GRID_SIZE;
+                    int z_start = (min_z - origin.position.z) / GRID_SIZE;
+                    int z_end = (max_z - origin.position.z) / GRID_SIZE;
 
                     for (int i = x_start; i < x_end; i++) {
                         for (int j = y_start; j < y_end; j++) {
-
-                            // Go from world -> local coordinates to see if in box
+                            for (int k = z_start; k < z_end; k++) {
+                                // Go from world -> local coordinates to see if in box
                             double world_x = (GRID_SIZE * i) + origin.position.x;
                             double world_y = (GRID_SIZE * j) + origin.position.y;
+                            double world_z = (GRID_SIZE * k) + origin.position.z;
                             std::cout << "World X: " << world_x << " World Y: " << world_y << std::endl;
-                            gz::math::v7::Vector3d world_cord{world_x, world_y, 0};
+                            gz::math::v7::Vector3d world_cord{world_x, world_y, world_z};
                             gz::math::v7::Pose3d inv = worldPose.Inverse();
                             gz::math::v7::Vector3d local_cord = (inv.Rot() * (world_cord - worldPose.Pos()));
                             std::cout << "Local X: " << local_cord.X() << " Local Y: " << local_cord.Y() << std::endl;
-                            if (abs(local_cord.X()) < half_x && abs(local_cord.Y()) < half_y) {
+                            if (abs(local_cord.X()) < half_x && abs(local_cord.Y()) < half_y && abs(local_cord.Z()) < half_z) {
                                 occupancy_grid[i + grid_width * j] = OCCUPIED;
+                            }
                             }
                         }
                     }
@@ -183,7 +186,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     // }
                     gzmsg << origin.position.x << " " << origin.position.y << std::endl;
                     gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-                    gzmsg << "x_inarray " << x_inarray << " y_inarray " << y_inarray << std::endl; 
+                    return false;
                 }
                 }
 
