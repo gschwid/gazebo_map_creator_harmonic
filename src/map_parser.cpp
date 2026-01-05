@@ -106,6 +106,7 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                 if (_geom->Data().Type() == sdf::GeometryType::BOX)
                 {
+                    if (name->Data() == "shelf_big_chassi_collision") {
 
                     // Making a draft of the occupancy grid filling feature.
                     scale = _geom->Data().BoxShape()->Size();
@@ -113,28 +114,37 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                     int x_inarray = int((worldPose.X() - (this->origin.position.x)) / GRID_SIZE);
                     int y_inarray = int((worldPose.Y() - (this->origin.position.y)) / GRID_SIZE);
-                    double half_x = (scale.X() / 2.0) / GRID_SIZE;
-                    double half_y = (scale.Y() / 2.0) / GRID_SIZE;
+                    double half_x = (scale.X() / 2.0);
+                    double half_y = (scale.Y() / 2.0);
+                    double half_z = (scale.Z() / 2.0);
 
                     // Get local corners of box
                     gz::math::v7::Vector3d test{1,1,1};
                     gz::math::v7::Quaternion<double> rotation = worldPose.Rot();
-                    gz::math::v7::Vector3d tl{-(scale.X() / 2.0), scale.Y() / 2.0, 0};
-                    gz::math::v7::Vector3d bl{-(scale.X() / 2.0), -(scale.Y() / 2.0), 0};
-                    gz::math::v7::Vector3d tr{scale.X() / 2.0, scale.Y() / 2.0, 0};
-                    gz::math::v7::Vector3d br{scale.X() / 2.0, -(scale.Y() / 2.0), 0};
-                    
+                    gz::math::v7::Vector3d ttl{-(half_x), half_y, half_z};
+                    gz::math::v7::Vector3d tbl{-(half_x), -(half_y), half_z};
+                    gz::math::v7::Vector3d ttr{half_x, half_y, half_z};
+                    gz::math::v7::Vector3d tbr{half_x, -(half_y), half_z};
+                    gz::math::v7::Vector3d btl{-(half_x), half_y, -(half_z)};
+                    gz::math::v7::Vector3d bbl{-(half_x), -(half_y), -(half_z)};
+                    gz::math::v7::Vector3d btr{half_x, half_y, -(half_z)};
+                    gz::math::v7::Vector3d bbr{half_x, -(half_y), -(half_z)};
+
                     // Rotate local coordinates into world coordinates
-                    gz::math::v7::Vector3d wtl = (rotation * tl) + worldPose.Pos();
-                    gz::math::v7::Vector3d wbl = (rotation * bl) + worldPose.Pos();
-                    gz::math::v7::Vector3d wtr = (rotation * tr) + worldPose.Pos();
-                    gz::math::v7::Vector3d wbr = (rotation * br) + worldPose.Pos();
+                    gz::math::v7::Vector3d wttl = (rotation * ttl) + worldPose.Pos();
+                    gz::math::v7::Vector3d wtbl = (rotation * tbl) + worldPose.Pos();
+                    gz::math::v7::Vector3d wttr = (rotation * ttr) + worldPose.Pos();
+                    gz::math::v7::Vector3d wtbr = (rotation * tbr) + worldPose.Pos();
+                    gz::math::v7::Vector3d wbtl = (rotation * btl) + worldPose.Pos();
+                    gz::math::v7::Vector3d wbbl = (rotation * bbl) + worldPose.Pos();
+                    gz::math::v7::Vector3d wbtr = (rotation * btr) + worldPose.Pos();
+                    gz::math::v7::Vector3d wbbr = (rotation * bbr) + worldPose.Pos();
 
                     // Get min and max and translate that to the occupancy grid
-                    double min_x = std::min({wtl.X(), wbl.X(), wtr.X(), wbr.X()});
-                    double min_y = std::min({wtl.Y(), wbl.Y(), wtr.Y(), wbr.Y()});
-                    double max_x = std::max({wtl.X(), wbl.X(), wtr.X(), wbr.X()});
-                    double max_y = std::max({wtl.Y(), wbl.Y(), wtr.Y(), wbr.Y()});
+                    double min_x = std::min({wttl.X(), wtbl.X(), wttr.X(), wtbr.X(), wbtl.X(), wbbl.X(), wbtr.X(), wbbr.X()});
+                    double min_y = std::min({wttl.Y(), wtbl.Y(), wttr.Y(), wtbr.Y(), wbtl.Y(), wbbl.Y(), wbtr.Y(), wbbr.Y()});
+                    double max_x = std::max({wttl.X(), wtbl.X(), wttr.X(), wtbr.X(), wbtl.X(), wbbl.X(), wbtr.X(), wbbr.X()});
+                    double max_y = std::max({wttl.Y(), wtbl.Y(), wttr.Y(), wtbr.Y(), wbtl.Y(), wbbl.Y(), wbtr.Y(), wbbr.Y()});
                     int x_start = (min_x - origin.position.x) / GRID_SIZE;
                     int x_end = (max_x - origin.position.x) / GRID_SIZE;
                     int y_start = (min_y - origin.position.y) / GRID_SIZE;
@@ -145,8 +155,6 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                             occupancy_grid[i + grid_width * j] = OCCUPIED;
                         }
                     }
-                    
-                    std::cout << "----------------\n" << wtl << " " << wbl << " " << wtr << " " << wbr << std::endl;
 
                     // int x_start = std::floor(x_inarray - half_x);
                     // int x_end = std::ceil(x_inarray + half_x);
@@ -164,7 +172,8 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     // }
                     gzmsg << origin.position.x << " " << origin.position.y << std::endl;
                     gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-                    gzmsg << "x_inarray " << x_inarray << " y_inarray " << y_inarray << std::endl;
+                    gzmsg << "x_inarray " << x_inarray << " y_inarray " << y_inarray << std::endl; 
+                }
                 }
 
                 else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
