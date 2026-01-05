@@ -152,7 +152,18 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                     for (int i = x_start; i < x_end; i++) {
                         for (int j = y_start; j < y_end; j++) {
-                            occupancy_grid[i + grid_width * j] = OCCUPIED;
+
+                            // Go from world -> local coordinates to see if in box
+                            double world_x = (GRID_SIZE * i) + origin.position.x;
+                            double world_y = (GRID_SIZE * j) + origin.position.y;
+                            std::cout << "World X: " << world_x << " World Y: " << world_y << std::endl;
+                            gz::math::v7::Vector3d world_cord{world_x, world_y, 0};
+                            gz::math::v7::Pose3d inv = worldPose.Inverse();
+                            gz::math::v7::Vector3d local_cord = (inv.Rot() * (world_cord - worldPose.Pos()));
+                            std::cout << "Local X: " << local_cord.X() << " Local Y: " << local_cord.Y() << std::endl;
+                            if (abs(local_cord.X()) < half_x && abs(local_cord.Y()) < half_y) {
+                                occupancy_grid[i + grid_width * j] = OCCUPIED;
+                            }
                         }
                     }
 
