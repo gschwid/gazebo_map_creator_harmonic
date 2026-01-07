@@ -106,7 +106,6 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                 if (_geom->Data().Type() == sdf::GeometryType::BOX)
                 {
-                    if (name->Data() == "shelf_big_chassi_collision") {
 
                     // Making a draft of the occupancy grid filling feature.
                     scale = _geom->Data().BoxShape()->Size();
@@ -153,19 +152,18 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
 
                     for (int i = x_start; i < x_end; i++) {
                         for (int j = y_start; j < y_end; j++) {
-                            for (int k = z_start; k < z_end; k++) {
+                                // Change this code so that we dont bruteforce the z
                                 // Go from world -> local coordinates to see if in box
+                                // Going to implement slab technique so that way I dont need to brute force z axis, instead I can just check if within z bounds
                             double world_x = (GRID_SIZE * i) + origin.position.x;
                             double world_y = (GRID_SIZE * j) + origin.position.y;
-                            double world_z = (GRID_SIZE * k) + origin.position.z;
                             std::cout << "World X: " << world_x << " World Y: " << world_y << std::endl;
-                            gz::math::v7::Vector3d world_cord{world_x, world_y, world_z};
+                            gz::math::v7::Vector3d world_cord{world_x, world_y, 0.0};
                             gz::math::v7::Pose3d inv = worldPose.Inverse();
                             gz::math::v7::Vector3d local_cord = (inv.Rot() * (world_cord - worldPose.Pos()));
                             std::cout << "Local X: " << local_cord.X() << " Local Y: " << local_cord.Y() << std::endl;
                             if (abs(local_cord.X()) < half_x && abs(local_cord.Y()) < half_y && abs(local_cord.Z()) < half_z) {
                                 occupancy_grid[i + grid_width * j] = OCCUPIED;
-                            }
                             }
                         }
                     }
@@ -186,8 +184,6 @@ void MapParser::getObstacles(const gz::sim::EntityComponentManager &_ecem)
                     // }
                     gzmsg << origin.position.x << " " << origin.position.y << std::endl;
                     gzmsg << "Name " << name->Data() << " Scale X: " << scale.X() << " Scale Y: " << scale.Y() << " Scale Z: " << scale.Z() << std::endl;
-                    return false;
-                }
                 }
 
                 else if (_geom->Data().Type() == sdf::GeometryType::CYLINDER)
